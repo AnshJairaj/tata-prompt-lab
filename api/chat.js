@@ -12,45 +12,29 @@ export default async function handler(req, res) {
     // ── GEMINI ──
     if (model_provider === 'gemini') {
       const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) return res.status(500).json({ error: 'Gemini API key not configured.' });
+      if (!apiKey) return res.status(500).json({ error: 'Gemini API key not configured on server.' });
 
-      // Extract the user message from the Claude-format body
       const userMessage = bodyRest.messages?.[0]?.content || '';
       const systemPrompt = bodyRest.system || '';
 
       const geminiBody = {
-        contents: [
-          {
-            parts: [{ text: systemPrompt + '\n\n' + userMessage }]
-          }
-        ],
-        generationConfig: {
-          maxOutputTokens: 1000,
-          temperature: 0.7
-        }
+        contents: [{ parts: [{ text: systemPrompt + '\n\n' + userMessage }] }],
+        generationConfig: { maxOutputTokens: 1000, temperature: 0.7 }
       };
 
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(geminiBody)
-        }
+        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(geminiBody) }
       );
 
       const data = await response.json();
-
-      // Convert Gemini response to Claude-style format so frontend works same way
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from Gemini.';
-      return res.status(200).json({
-        content: [{ type: 'text', text }]
-      });
+      return res.status(200).json({ content: [{ type: 'text', text }] });
     }
 
     // ── CLAUDE (default) ──
     const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) return res.status(500).json({ error: 'Anthropic API key not configured.' });
+    if (!apiKey) return res.status(500).json({ error: 'Anthropic API key not configured on server.' });
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
