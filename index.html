@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tata Steel AI Prompt Engineering Lab</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#E8EDF2;color:#1a1a1a;min-height:100vh}
+:root{--ts-blue:#003B7A;--ts-light:#1565C0;--ts-accent:#F57C00;--ts-steel:#607D8B;--ts-bg:#E8EDF2}
+.header{background:var(--ts-blue);color:#fff;padding:0}
+.header-top{display:flex;align-items:center;gap:16px;padding:14px 24px;border-bottom:3px solid var(--ts-accent)}
+.logo-box{display:flex;align-items:center;gap:10px}
+.logo-icon{width:40px;height:40px;background:var(--ts-accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;letter-spacing:.5px;flex-shrink:0}
+.brand-name{font-size:18px;font-weight:700;letter-spacing:.3px}
+.brand-sub{font-size:11px;color:rgba(255,255,255,.65);margin-top:1px}
+.header-badges{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:4px 12px;font-size:11px;color:rgba(255,255,255,.85)}
+.badge.accent{background:var(--ts-accent);border-color:var(--ts-accent);color:#fff}
+.hero{padding:24px 24px 18px;text-align:center}
+.hero h1{font-size:22px;font-weight:600;color:#fff;margin-bottom:6px}
+.hero p{font-size:13px;color:rgba(255,255,255,.7);max-width:540px;margin:0 auto}
+.steps-row{display:flex;justify-content:center;align-items:center;margin-top:16px;flex-wrap:wrap;gap:6px}
+.step{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.7)}
+.step-num{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;flex-shrink:0}
+.step-num.active{background:var(--ts-accent)}
+.step-arrow{color:rgba(255,255,255,.3);font-size:14px;padding:0 4px}
+.main{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 200px)}
+.sidebar{background:#fff;border-right:1px solid #ddd;padding:16px 0}
+.sidebar-title{font-size:10px;font-weight:600;color:var(--ts-steel);text-transform:uppercase;letter-spacing:1px;padding:0 16px 10px}
+.case-btn{display:flex;align-items:flex-start;gap:10px;width:100%;padding:12px 16px;background:none;border:none;cursor:pointer;text-align:left;border-left:3px solid transparent;transition:all .15s}
+.case-btn:hover{background:#f5f8ff}
+.case-btn.active{background:#EEF4FF;border-left-color:var(--ts-blue)}
+.case-icon{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:1px}
+.case-info{flex:1;min-width:0}
+.case-label{font-size:10px;color:var(--ts-steel);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.case-name{font-size:13px;font-weight:500;color:var(--ts-blue);line-height:1.3;margin-top:2px}
+.case-btn.active .case-name{font-weight:600}
+.sidebar-divider{height:1px;background:#eee;margin:8px 16px}
+.progress-section{padding:12px 16px}
+.progress-label{font-size:10px;color:var(--ts-steel);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.progress-text{font-size:12px;color:var(--ts-blue);font-weight:500;margin-bottom:6px}
+.progress-bar-bg{height:5px;background:#e0e7f0;border-radius:3px;overflow:hidden}
+.progress-bar{height:100%;border-radius:3px;background:var(--ts-accent);transition:width .4s ease}
+.content{padding:20px 24px;overflow-y:auto}
+.case-header{background:#fff;border-radius:10px;border:1px solid #e0e7f0;padding:18px 20px;margin-bottom:16px}
+.case-header-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.case-big-icon{width:46px;height:46px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.case-title{font-size:17px;font-weight:600;color:var(--ts-blue)}
+.case-dept{font-size:12px;color:var(--ts-steel);margin-top:2px}
+.completed-badge{margin-left:auto;background:#E8F5E9;border:1px solid #A5D6A7;color:#2E7D32;font-size:11px;padding:4px 12px;border-radius:20px;font-weight:500;white-space:nowrap}
+.scenario-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.scenario-box{background:#f8fafc;border-radius:6px;padding:10px 12px;border:1px solid #e8eef5}
+.scenario-box-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--ts-steel);margin-bottom:5px}
+.scenario-box p{font-size:12px;color:#333;line-height:1.6}
+.io-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.io-box{background:#f8fafc;border-radius:6px;padding:10px 12px;border:1px solid #e8eef5}
+.io-box-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.io-box-label.input-lbl{color:#0277BD}
+.io-box-label.output-lbl{color:#2E7D32}
+.io-tag{display:inline-block;background:#fff;border:1px solid #dde3ea;border-radius:4px;padding:3px 8px;font-size:11px;margin:2px 2px 2px 0;color:#333;line-height:1.4}
+.tabs{display:flex;background:#fff;border-radius:8px 8px 0 0;border:1px solid #e0e7f0;border-bottom:none;overflow:hidden}
+.tab-btn{flex:1;padding:10px 8px;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-size:12px;font-weight:500;color:var(--ts-steel);transition:all .15s}
+.tab-btn.active{color:var(--ts-blue);border-bottom-color:var(--ts-blue);background:#f0f5ff}
+.tab-btn:hover:not(.active){background:#f8f9fa}
+.panel{background:#fff;border:1px solid #e0e7f0;border-top:none;border-radius:0 0 10px 10px;padding:16px;margin-bottom:16px}
+.panel-label{font-size:12px;color:var(--ts-steel);margin-bottom:12px;font-weight:500}
+.prompt-textarea{width:100%;min-height:150px;padding:12px 14px;border:1.5px solid #dde3ea;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;line-height:1.7;color:#222;background:#fff;transition:border-color .15s}
+.prompt-textarea:focus{outline:none;border-color:var(--ts-blue);box-shadow:0 0 0 3px rgba(0,59,122,.08)}
+.prompt-textarea::placeholder{color:#aaa;font-style:italic}
+.quality-bar{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.quality-chip{display:flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;border:1px solid #ddd;background:#f9f9f9;color:#888;transition:all .2s}
+.quality-chip.pass{background:#E8F5E9;border-color:#A5D6A7;color:#2E7D32}
+.quality-chip.fail{background:#FFF3F3;border-color:#EF9A9A;color:#C62828}
+.action-bar{display:flex;align-items:center;gap:10px;margin-top:12px}
+.char-count{font-size:11px;color:var(--ts-steel);margin-right:auto}
+.btn-secondary{padding:8px 14px;border:1px solid #ddd;border-radius:6px;background:#fff;font-size:12px;cursor:pointer;color:var(--ts-steel);transition:background .15s}
+.btn-secondary:hover{background:#f5f5f5}
+.btn-run{padding:9px 22px;border:none;border-radius:6px;background:var(--ts-blue);color:#fff;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .15s}
+.btn-run:hover:not(:disabled){background:var(--ts-light)}
+.btn-run:disabled{opacity:.5;cursor:not-allowed}
+.tips-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.tip-card{background:#FFF8E1;border:1px solid #FFE082;border-radius:6px;padding:10px 12px;cursor:pointer;transition:all .15s}
+.tip-card:hover{background:#FFF3CD;transform:translateY(-1px);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.tip-card-label{font-size:9px;font-weight:700;text-transform:uppercase;color:#E65100;letter-spacing:.6px;margin-bottom:4px}
+.tip-card p{font-size:11px;color:#5D4037;line-height:1.5}
+.craft-box{background:#E3F2FD;border-radius:8px;padding:12px 14px;border:1px solid #90CAF9}
+.craft-label{font-size:11px;font-weight:600;color:#0277BD;margin-bottom:8px}
+.craft-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.craft-item{background:#fff;border-radius:6px;padding:8px 6px;text-align:center;border:1px solid #BBDEFB}
+.craft-letter{font-size:18px;font-weight:700;color:#0277BD}
+.craft-word{font-size:11px;font-weight:600;color:#1565C0;margin-top:2px}
+.craft-desc{font-size:10px;color:#666;margin-top:2px;line-height:1.3}
+.scoring-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.score-criterion{background:#f8fafc;border-radius:8px;padding:12px;border:1px solid #e0e7f0}
+.score-crit-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.score-crit-name{font-size:12px;font-weight:600;color:var(--ts-blue)}
+.score-crit-desc{font-size:11px;color:var(--ts-steel);line-height:1.5}
+.output-area{background:#fff;border-radius:10px;border:1px solid #e0e7f0;padding:18px}
+.output-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.output-title{font-size:13px;font-weight:600;color:var(--ts-blue);display:flex;align-items:center;gap:8px}
+.output-badge{font-size:10px;background:#EEF4FF;padding:2px 8px;border-radius:10px;color:var(--ts-steel);font-weight:400}
+.output-status{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ts-steel)}
+.status-dot{width:7px;height:7px;border-radius:50%;background:#ccc;flex-shrink:0}
+.status-dot.loading{background:var(--ts-accent);animation:pulse 1s ease-in-out infinite}
+.status-dot.done{background:#4CAF50}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.output-content{min-height:130px;font-size:13px;line-height:1.8;color:#222;white-space:pre-wrap;word-break:break-word}
+.output-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:130px;text-align:center;color:#aaa}
+.output-empty-icon{font-size:40px;margin-bottom:10px;opacity:.3}
+.output-empty p{font-size:13px}
+.skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:4px;height:14px;margin-bottom:10px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.footer{background:var(--ts-blue);color:rgba(255,255,255,.45);text-align:center;font-size:11px;padding:12px 24px}
+@media(max-width:720px){
+  .main{grid-template-columns:1fr}
+  .sidebar{display:flex;flex-wrap:wrap;padding:8px;gap:4px;border-right:none;border-bottom:1px solid #ddd}
+  .case-btn{width:auto;flex:1;min-width:130px;padding:8px;border-left:none;border-bottom:3px solid transparent}
+  .case-btn.active{border-bottom-color:var(--ts-blue);border-left-color:transparent;background:#EEF4FF}
+  .progress-section{display:none}
+  .scenario-grid,.io-row,.scoring-grid{grid-template-columns:1fr}
+  .tips-grid{grid-template-columns:1fr 1fr}
+  .craft-grid{grid-template-columns:repeat(3,1fr)}
+  .header-badges{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo-box">
+      <div class="logo-icon">TS</div>
+      <div>
+        <div class="brand-name">Tata Steel · AI Prompt Lab</div>
+        <div class="brand-sub">Enterprise Prompt Engineering Training Platform</div>
+      </div>
+    </div>
+    <div class="header-badges">
+      <span class="badge accent">🔴 Live AI</span>
+      <span class="badge">5 Business Cases</span>
+      <span class="badge">Internship Project 2025</span>
+    </div>
+  </div>
+  <div class="hero">
+    <h1>Master AI Prompt Engineering for Enterprise</h1>
+    <p>Learn to craft effective AI prompts through real Tata Steel business scenarios — HR, IT, Procurement, Operations &amp; more.</p>
+    <div class="steps-row">
+      <div class="step"><div class="step-num active">1</div>&nbsp;Choose a case</div>
+      <div class="step-arrow">→</div>
+      <div class="step"><div class="step-num active">2</div>&nbsp;Read the scenario</div>
+      <div class="step-arrow">→</div>
+      <div class="step"><div class="step-num">3</div>&nbsp;Write your prompt</div>
+      <div class="step-arrow">→</div>
+      <div class="step"><div class="step-num">4</div>&nbsp;Get AI output</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="sidebar">
+    <div class="sidebar-title">Business Cases</div>
+    <button class="case-btn active" onclick="selectCase(0)">
+      <div class="case-icon" style="background:#E3F2FD">🎓</div>
+      <div class="case-info">
+        <div class="case-label">Case 1 · L&amp;D</div>
+        <div class="case-name">Learning &amp; Development</div>
+      </div>
+    </button>
+    <button class="case-btn" onclick="selectCase(1)">
+      <div class="case-icon" style="background:#F3E5F5">👥</div>
+      <div class="case-info">
+        <div class="case-label">Case 2 · HR</div>
+        <div class="case-name">Recruitment &amp; Talent</div>
+      </div>
+    </button>
+    <button class="case-btn" onclick="selectCase(2)">
+      <div class="case-icon" style="background:#FFF3E0">🏭</div>
+      <div class="case-info">
+        <div class="case-label">Case 3 · Procurement</div>
+        <div class="case-name">Vendor Selection</div>
+      </div>
+    </button>
+    <button class="case-btn" onclick="selectCase(3)">
+      <div class="case-icon" style="background:#E8F5E9">💻</div>
+      <div class="case-info">
+        <div class="case-label">Case 4 · IT</div>
+        <div class="case-name">IT Helpdesk Support</div>
+      </div>
+    </button>
+    <button class="case-btn" onclick="selectCase(4)">
+      <div class="case-icon" style="background:#FCE4EC">📅</div>
+      <div class="case-info">
+        <div class="case-label">Case 5 · HR Ops</div>
+        <div class="case-name">Leave Management</div>
+      </div>
+    </button>
+    <div class="sidebar-divider"></div>
+    <div class="progress-section">
+      <div class="progress-label">Your Progress</div>
+      <div class="progress-text" id="progress-text">0 of 5 completed</div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+  <div class="content" id="content-area"></div>
+</div>
+
+<div class="footer">
+  Tata Steel Internship Project &nbsp;·&nbsp; AI Prompt Engineering Lab &nbsp;·&nbsp; Powered by Claude AI (claude-sonnet-4-6)
+</div>
+
+<script>
+const CASES = [
+  {
+    id:0,icon:"🎓",iconBg:"#E3F2FD",
+    title:"Learning & Development",dept:"Human Resources · L&D Division",
+    scenario:"An employee at Tata Steel wants to transition into a Generative AI-related role. The L&D team needs an AI assistant that can identify skill gaps and create a personalized, time-bound learning plan tailored to the organization's needs.",
+    objective:"AI should analyze the employee's current skills against GenAI role requirements, identify gaps, build a structured week-by-week learning roadmap, recommend specific courses and certifications, and suggest practical project ideas.",
+    inputs:["Employee's current role & skills","Target GenAI role description","Available training budget","Timeline for transition","Preferred learning style"],
+    outputs:["Skill Gap Analysis Table","Week-by-week Learning Roadmap","Top 5 Course Recommendations","Certifications to Pursue","3 Practice Project Ideas","Estimated Transition Timeline"],
+    tips:[
+      {label:"Define the role clearly",tip:"Specify the exact target role. E.g., 'GenAI Engineer at Tata Steel focused on steel manufacturing quality optimization using LLMs.'"},
+      {label:"List skills with levels",tip:"Present current skills with proficiency levels — Beginner / Intermediate / Advanced. This helps AI give accurate gap analysis."},
+      {label:"Ask for structured output",tip:"Explicitly request: 'Structure your output with sections: 1. Gap Analysis, 2. Roadmap, 3. Course Recommendations, 4. Projects.'"}
+    ],
+    placeholder:"Example:\n\n\"You are an L&D specialist at Tata Steel. An employee currently works as a Process Engineer with these skills: Python (Intermediate), SQL (Beginner), Statistics (Intermediate), Excel (Advanced). They want to transition to a GenAI Engineer role in 6 months. Training budget: ₹50,000.\n\nPlease:\n1. Identify skill gaps vs GenAI role requirements\n2. Create a 6-month week-by-week learning roadmap\n3. Recommend top 5 courses with platforms\n4. Suggest 3 hands-on projects using Tata Steel data\n5. List 2 certifications to earn\n\nFormat with clear headings and tables.\""
+  },
+  {
+    id:1,icon:"👥",iconBg:"#F3E5F5",
+    title:"Recruitment & Talent Acquisition",dept:"Human Resources · Talent Acquisition",
+    scenario:"The HR department at Tata Steel is hiring a Data Scientist for the Digital Operations team at Jamshedpur. Hundreds of resumes have been received and recruiters need AI assistance to shortlist the most suitable candidates without bias.",
+    objective:"AI should screen a candidate's resume against the job description, provide a structured match score, analyze technical and soft-skill strengths and weaknesses, and generate targeted interview questions.",
+    inputs:["Candidate Resume (text)","Job Description","Required Skills List","Years of Experience Required","Education Requirements"],
+    outputs:["Match Score (/100)","Skill Match Breakdown","Candidate Strengths (Top 3)","Candidate Weaknesses (Top 3)","5 Technical Interview Questions","3 Behavioural Questions","Hiring Recommendation"],
+    tips:[
+      {label:"Use a scoring rubric",tip:"Ask AI to score on: Technical Skills (40pts), Relevant Experience (30pts), Education (15pts), Culture Fit (15pts)."},
+      {label:"Ensure bias-free screening",tip:"Add: 'Evaluate only based on skills and experience. Ignore name, gender, age, location, and institution prestige.'"},
+      {label:"Paste both documents",tip:"Include the full JD and full resume text in the prompt. Clearly label each section for accurate comparison."}
+    ],
+    placeholder:"Example:\n\n\"You are a senior HR recruiter at Tata Steel. Review the candidate resume against our Data Scientist job description.\n\nJOB DESCRIPTION:\n- Role: Data Scientist, Digital Operations, Jamshedpur\n- Required: Python, Machine Learning, SQL, Power BI\n- Experience: 3-5 years | Education: B.Tech/M.Tech CS or related\n\nCANDIDATE RESUME:\n[Paste resume text here]\n\nProvide:\n1. Match Score out of 100 (with category breakdown)\n2. Top 3 Strengths\n3. Top 3 Weaknesses or Gaps\n4. 5 Technical interview questions\n5. 3 Behavioural questions\n6. Recommendation: Shortlist / Waitlist / Reject\""
+  },
+  {
+    id:2,icon:"🏭",iconBg:"#FFF3E0",
+    title:"Procurement & Vendor Selection",dept:"Supply Chain · Procurement Division",
+    scenario:"Tata Steel's procurement team needs to purchase 100 high-performance laptops for engineering employees at the Kalinganagar plant. Three vendors have submitted different quotations with varying prices, warranty periods, and AMC terms.",
+    objective:"AI should compare all vendor quotations objectively using a weighted scoring model, analyze total cost of ownership, evaluate warranty and SLA terms, identify risks, and recommend the best vendor with justification.",
+    inputs:["Vendor Quotation 1 – TechWorld Solutions","Vendor Quotation 2 – CompuEdge India","Vendor Quotation 3 – DigiPro Systems","Required Laptop Specifications","Budget Limit (₹80 lakh)","Delivery Deadline"],
+    outputs:["Side-by-side Vendor Comparison Table","Total Cost of Ownership (3-year TCO)","Warranty & SLA Evaluation","Risk Assessment per Vendor","Weighted Score (/100) per Vendor","Final Recommendation with Justification"],
+    tips:[
+      {label:"Define weighted criteria",tip:"Tell AI: 'Score vendors on: Unit Price 35%, Warranty Terms 25%, After-Sales Support 20%, Brand Reliability 20%.'"},
+      {label:"Ask for 3-year TCO",tip:"Request: 'Calculate Total Cost of Ownership over 3 years including AMC, replacement parts, and estimated downtime cost.'"},
+      {label:"Flag risk factors",tip:"Add: 'Identify red flags such as: new vendor with no enterprise track record, warranty exclusions, supply chain risks.'"}
+    ],
+    placeholder:"Example:\n\n\"You are a procurement analyst at Tata Steel. The company needs 100 laptops (Intel i7, 16GB RAM, 512GB SSD, Windows 11 Pro). Budget: ₹80 lakh.\n\nVendor 1 – TechWorld Solutions:\nUnit price: ₹72,000 | Warranty: 3yr onsite | AMC: ₹4,000/unit/yr | Delivery: 15 days\n\nVendor 2 – CompuEdge India:\nUnit price: ₹68,000 | Warranty: 2yr carry-in | AMC: ₹3,500/unit/yr | Delivery: 10 days\n\nVendor 3 – DigiPro Systems:\nUnit price: ₹75,000 | Warranty: 3yr onsite+accidental | AMC: ₹2,000/unit/yr | Delivery: 20 days\n\nPlease:\n1. Create a comparison table\n2. Calculate 3-year TCO for each\n3. Score each vendor /100 (Price 35%, Warranty 25%, Support 20%, Reliability 20%)\n4. Highlight key risks per vendor\n5. Recommend the best vendor with justification\""
+  },
+  {
+    id:3,icon:"💻",iconBg:"#E8F5E9",
+    title:"IT Helpdesk Support",dept:"Information Technology · Service Desk",
+    scenario:"An employee working remotely from Pune cannot connect to Tata Steel's company VPN (Cisco AnyConnect), blocking access to critical project documents on internal SharePoint. IT wants an AI assistant for first-level troubleshooting before escalating.",
+    objective:"AI should act as a Tier-1 IT support agent, systematically diagnose the VPN issue, provide step-by-step fixes, and if unresolved, generate a structured L2 escalation ticket.",
+    inputs:["Employee issue description","Operating System & device type","VPN client software version","Error message or code","Network environment","Steps already tried"],
+    outputs:["Top 3 Root Cause Hypotheses","Step-by-step Troubleshooting Guide","Verification Steps after each fix","Estimated Time to Resolve","Escalation Summary (if unresolved)","L2 Support Ticket Draft"],
+    tips:[
+      {label:"Set the agent persona",tip:"Start with: 'Act as a Tier-1 IT Support specialist at Tata Steel, trained on Cisco AnyConnect and GlobalProtect VPN troubleshooting.'"},
+      {label:"Use a decision tree",tip:"Ask AI to follow: Check credentials → Check internet → Check VPN config → Check firewall/antivirus → Reinstall client."},
+      {label:"Build the escalation template",tip:"Ask AI to end with: 'If unresolved after 20 mins, generate an L2 escalation ticket with issue summary, steps attempted, error details, priority (P1/P2/P3).'"}
+    ],
+    placeholder:"Example:\n\n\"You are a Level-1 IT Support specialist at Tata Steel, expert in Cisco AnyConnect VPN.\n\nEmployee details:\n- Department: Projects | Device: Windows 11 Dell Latitude\n- VPN Client: Cisco AnyConnect v4.10\n- Error: 'Connection attempt has timed out. Please verify internet connectivity.'\n- Internet: Working fine | Location: Home, Pune\n- Already tried: Restarted laptop, checked WiFi\n\nYour task:\n1. List top 3 most likely root causes\n2. Provide numbered step-by-step troubleshooting guide\n3. Include a verification step after each fix\n4. If unresolved, generate a structured L2 escalation ticket\n5. Keep language simple for a non-technical user\""
+  },
+  {
+    id:4,icon:"📅",iconBg:"#FCE4EC",
+    title:"Leave Management & Workforce Planning",dept:"HR Operations · Workforce Planning",
+    scenario:"A senior process engineer at Tata Steel's Kalinganagar plant has applied for 10 consecutive days of leave (15–24 July 2025) during the critical commissioning phase of the new blast furnace expansion project where they play a key technical lead role.",
+    objective:"AI should verify leave policy compliance, analyze team availability, assess project impact risk, explore staffing alternatives, and provide a clear, fair recommendation for the manager.",
+    inputs:["Employee Leave Application","Tata Steel Leave Policy","Team Availability Calendar (July 2025)","Project Schedule & Key Milestones","Employee Role & Responsibilities","Available backup resources"],
+    outputs:["Policy Compliance Check (Pass/Fail)","Team Availability Summary","Project Impact Score (Low/Medium/High/Critical)","Risk Assessment (3 key risks)","Staffing Alternatives","Final Recommendation: Approve/Partial/Reject","Manager Response Email Draft"],
+    tips:[
+      {label:"Check policy first",tip:"Ask AI: 'First verify if this request complies with Tata Steel's casual leave rules — max consecutive days, notice period, and blackout periods.'"},
+      {label:"Rate impact dimensions",tip:"Ask AI to rate project impact on: Delivery Timeline, Team Morale, Client Commitments, and Safety Coverage — using High/Medium/Low."},
+      {label:"Keep the tone fair",tip:"Add: 'Ensure the recommendation respects employee wellbeing. If rejecting, provide constructive alternatives such as partial leave or rescheduling.'"}
+    ],
+    placeholder:"Example:\n\n\"You are an HR Operations AI assistant at Tata Steel. A senior process engineer (7 years experience, technical lead) has applied for 10 days casual leave from 15–24 July 2025 for a family function.\n\nContext:\n- Project: Blast Furnace #3 Commissioning, Kalinganagar\n- Critical milestone: First heat trial on 18 July 2025\n- Policy: Max 5 consecutive casual leaves; 7-day advance notice required; blackout during critical phases\n- Team: 2 of 4 engineers already on leave that period\n- Backup: One junior engineer available, not trained on this process\n\nPlease:\n1. Check policy compliance (cite specific rules)\n2. Assess project impact (Low/Medium/High/Critical)\n3. Identify top 3 risks if leave is approved\n4. Explore 2 alternative solutions\n5. Give final recommendation with justification\n6. Draft a professional email response from manager to employee\""
+  }
+];
+
+let currentCase=0,completedCases=new Set(),_prompts={},_outputs={},_activeTab={};
+
+function selectCase(idx){
+  currentCase=idx;
+  document.querySelectorAll('.case-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  renderContent();
+}
+
+function renderContent(){
+  const c=CASES[currentCase];
+  const savedPrompt=_prompts[currentCase]||'';
+  const savedOutput=_outputs[currentCase]||'';
+  const activeTab=_activeTab[currentCase]||'write';
+  document.getElementById('content-area').innerHTML=`
+    <div class="case-header">
+      <div class="case-header-top">
+        <div class="case-big-icon" style="background:${c.iconBg}">${c.icon}</div>
+        <div>
+          <div class="case-title">${c.title}</div>
+          <div class="case-dept">${c.dept}</div>
+        </div>
+        ${completedCases.has(currentCase)?'<span class="completed-badge">✓ Completed</span>':''}
+      </div>
+      <div class="scenario-grid">
+        <div class="scenario-box"><div class="scenario-box-label">📋 Business Scenario</div><p>${c.scenario}</p></div>
+        <div class="scenario-box"><div class="scenario-box-label">🎯 Objective</div><p>${c.objective}</p></div>
+      </div>
+      <div class="io-row" style="margin-top:10px">
+        <div class="io-box"><div class="io-box-label input-lbl">📥 Input — What AI receives</div>${c.inputs.map(i=>`<span class="io-tag">📌 ${i}</span>`).join('')}</div>
+        <div class="io-box"><div class="io-box-label output-lbl">📤 Expected Output</div>${c.outputs.map(o=>`<span class="io-tag">✅ ${o}</span>`).join('')}</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn ${activeTab==='write'?'active':''}" onclick="switchTab('write')">✏️ Write Prompt</button>
+      <button class="tab-btn ${activeTab==='tips'?'active':''}" onclick="switchTab('tips')">💡 Prompt Tips</button>
+      <button class="tab-btn ${activeTab==='guide'?'active':''}" onclick="switchTab('guide')">📖 Scoring Guide</button>
+    </div>
+    <div class="panel" id="panel-write" style="display:${activeTab==='write'?'block':'none'}">
+      <div class="panel-label">✏️ <strong>Your Prompt</strong> — Write an effective prompt for this business case</div>
+      <textarea class="prompt-textarea" id="prompt-input" placeholder="${c.placeholder.replace(/"/g,'&quot;')}" oninput="onPromptChange()">${escHtml(savedPrompt)}</textarea>
+      <div class="quality-bar" id="quality-bar">
+        <span class="quality-chip" id="qc-role">👤 Role defined</span>
+        <span class="quality-chip" id="qc-context">🏭 Tata context</span>
+        <span class="quality-chip" id="qc-task">📋 Task clear</span>
+        <span class="quality-chip" id="qc-format">📊 Format asked</span>
+        <span class="quality-chip" id="qc-length">📏 Good length</span>
+      </div>
+      <div class="action-bar">
+        <span class="char-count" id="char-count">${savedPrompt.length} characters</span>
+        <button class="btn-secondary" onclick="clearPrompt()">Clear</button>
+        <button class="btn-secondary" onclick="loadExample()">Load Example</button>
+        <button class="btn-run" id="run-btn" onclick="runPrompt()">▶ &nbsp;Run with TATA-AI</button>
+      </div>
+    </div>
+    <div class="panel" id="panel-tips" style="display:${activeTab==='tips'?'block':'none'}">
+      <div class="panel-label">💡 <strong>Prompt Tips for this Case</strong> — click a tip to add it to your prompt</div>
+      <div class="tips-grid">
+        ${c.tips.map((t,i)=>`<div class="tip-card" onclick="applyTip(${i})"><div class="tip-card-label">💡 Tip ${i+1}: ${t.label}</div><p>${t.tip}</p></div>`).join('')}
+      </div>
+      <div class="craft-box">
+        <div class="craft-label">📚 CRAFT Framework — A proven structure for enterprise AI prompts</div>
+        <div class="craft-grid">
+          ${[['C','Context','Set background'],['R','Role','Define who AI is'],['A','Action','State the task'],['F','Format','Specify output'],['T','Tone','Set professionalism']].map(([l,w,d])=>`
+          <div class="craft-item"><div class="craft-letter">${l}</div><div class="craft-word">${w}</div><div class="craft-desc">${d}</div></div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="panel" id="panel-guide" style="display:${activeTab==='guide'?'block':'none'}">
+      <div class="panel-label">📖 <strong>Prompt Scoring Criteria</strong> — How your prompt will be evaluated</div>
+      <div class="scoring-grid">
+        ${[['Role Clarity (20pts)','Does the prompt clearly define who the AI should act as?'],['Business Context (20pts)','Is the Tata Steel context and business problem clearly described?'],['Task Specificity (20pts)','Are the exact tasks and deliverables explicitly stated?'],['Output Format (20pts)','Does the prompt specify how output should be structured?'],['Completeness (20pts)','Does the prompt include all information AI needs to respond accurately?']].map(([n,d])=>`
+        <div class="score-criterion"><div class="score-crit-top"><span class="score-crit-name">${n}</span></div><div class="score-crit-desc">${d}</div></div>`).join('')}
+      </div>
+      <div style="background:#E8F5E9;border-radius:8px;padding:12px 14px;border:1px solid #A5D6A7;margin-top:12px">
+        <div style="font-size:11px;font-weight:600;color:#2E7D32;margin-bottom:4px">🏆 What makes a 90+/100 prompt?</div>
+        <div style="font-size:12px;color:#388E3C;line-height:1.7">A top-scoring prompt: (1) opens with a clear role, (2) gives rich context with real data, (3) lists numbered tasks, (4) specifies exact output format, and (5) provides all inputs inline so AI doesn't need to guess anything.</div>
+      </div>
+    </div>
+    <div class="output-area">
+      <div class="output-header">
+        <div class="output-title">🤖 TATA-AI Response <span class="output-badge">claude-sonnet-4-6</span></div>
+        <div class="output-status">
+          <div class="status-dot idle" id="status-dot"></div>
+          <span id="status-text">Waiting for prompt</span>
+          ${savedOutput?`<button class="btn-secondary" style="padding:4px 10px;font-size:11px" onclick="copyOutput()">Copy Output</button>`:''}
+        </div>
+      </div>
+      <div id="output-display">
+        ${savedOutput
+          ?`<div class="output-content">${escHtml(savedOutput)}</div>`
+          :`<div class="output-empty"><div class="output-empty-icon">🤖</div><p>Write a prompt above and click <strong>Run with TATA-AI</strong></p></div>`}
+      </div>
+    </div>
+  `;
+  if(savedPrompt)onPromptChange();
+}
+
+function switchTab(tab){
+  _activeTab[currentCase]=tab;
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===['write','tips','guide'].indexOf(tab)));
+  ['write','tips','guide'].forEach(t=>{const p=document.getElementById('panel-'+t);if(p)p.style.display=t===tab?'block':'none';});
+}
+
+function onPromptChange(){
+  const ta=document.getElementById('prompt-input');if(!ta)return;
+  const txt=ta.value;_prompts[currentCase]=txt;
+  const cc=document.getElementById('char-count');if(cc)cc.textContent=txt.length+' characters';
+  const lower=txt.toLowerCase();
+  [['qc-role',lower.includes('you are')||lower.includes('act as')||lower.includes('specialist')||lower.includes('expert')||lower.includes('analyst')||lower.includes('agent')],
+   ['qc-context',lower.includes('tata')||lower.includes('steel')||lower.includes('kalinganagar')||lower.includes('jamshedpur')||lower.includes('company')||lower.includes('organization')],
+   ['qc-task',lower.includes('analyze')||lower.includes('evaluate')||lower.includes('recommend')||lower.includes('provide')||lower.includes('create')||lower.includes('identify')||lower.includes('compare')],
+   ['qc-format',lower.includes('format')||lower.includes('table')||lower.includes('section')||lower.includes('list')||lower.includes('bullet')||lower.includes('numbered')||lower.includes('structure')],
+   ['qc-length',txt.length>=120]
+  ].forEach(([id,pass])=>{const el=document.getElementById(id);if(el)el.className='quality-chip '+(pass?'pass':'fail');});
+}
+
+function loadExample(){
+  const ta=document.getElementById('prompt-input');if(!ta)return;
+  ta.value=CASES[currentCase].placeholder;_prompts[currentCase]=ta.value;
+  onPromptChange();switchTab('write');
+}
+
+function clearPrompt(){
+  const ta=document.getElementById('prompt-input');if(ta)ta.value='';
+  _prompts[currentCase]='';onPromptChange();
+}
+
+function applyTip(i){
+  switchTab('write');
+  const tip=CASES[currentCase].tips[i];
+  const ta=document.getElementById('prompt-input');if(!ta)return;
+  ta.value=(ta.value||'')+'\n\n[Tip: '+tip.label+'] '+tip.tip;
+  _prompts[currentCase]=ta.value;onPromptChange();ta.focus();
+}
+
+async function runPrompt(){
+  const prompt=(_prompts[currentCase]||'').trim();
+  if(!prompt){alert('Please write a prompt first, or click "Load Example" to try a sample.');return;}
+  const btn=document.getElementById('run-btn');
+  const display=document.getElementById('output-display');
+  const dot=document.getElementById('status-dot');
+  const statusText=document.getElementById('status-text');
+  btn.disabled=true;dot.className='status-dot loading';statusText.textContent='Generating...';
+  display.innerHTML=`<div style="padding:4px 0">${Array(7).fill('<div class="skeleton" style="width:'+(55+Math.random()*40|0)+'%"></div>').join('')}</div>`;
+  const systemPrompt=`You are TATA-AI, an enterprise AI assistant built exclusively for Tata Steel. You support HR, Procurement, IT, Learning & Development, and Operations teams across Tata Steel plants including Jamshedpur, Kalinganagar, and Odisha. Always provide structured, professional, and actionable responses. Use clear headings, numbered lists, and plain-text tables where appropriate. When asked for scores, use the format XX/100. Always end with a clear RECOMMENDATION section. Be specific and tailor responses to the steel manufacturing industry context.`;
+  try{
+    const res=await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        system:systemPrompt,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data=await res.json();
+    const text=(data.content&&data.content[0]&&data.content[0].text)
+      ?data.content[0].text
+      :(data.error?'Error: '+data.error.message:'No response received. Please try again.');
+    _outputs[currentCase]=text;
+    completedCases.add(currentCase);updateProgress();
+    display.innerHTML=`<div class="output-content">${escHtml(text)}</div>`;
+    dot.className='status-dot done';statusText.textContent='Complete';
+    const os=document.querySelector('.output-status');
+    if(os&&!os.querySelector('.dyn-copy')){
+      const cb=document.createElement('button');
+      cb.className='btn-secondary dyn-copy';cb.style.cssText='padding:4px 10px;font-size:11px';
+      cb.textContent='Copy Output';cb.onclick=copyOutput;os.appendChild(cb);
+    }
+  }catch(err){
+    display.innerHTML=`<div class="output-content" style="color:#C62828">⚠️ Error: ${escHtml(err.message)}\n\nPlease check your internet connection and try again.</div>`;
+    dot.className='status-dot idle';statusText.textContent='Error';
+  }
+  btn.disabled=false;
+}
+
+function copyOutput(){
+  const text=_outputs[currentCase];if(!text)return;
+  if(navigator.clipboard)navigator.clipboard.writeText(text).then(()=>{
+    document.querySelectorAll('.dyn-copy').forEach(b=>{b.textContent='✓ Copied!';setTimeout(()=>b.textContent='Copy Output',2000);});
+  });
+}
+
+function updateProgress(){
+  const n=completedCases.size;
+  const pt=document.getElementById('progress-text');const pf=document.getElementById('progress-fill');
+  if(pt)pt.textContent=n+' of 5 completed';if(pf)pf.style.width=(n/5*100)+'%';
+}
+
+function escHtml(str){
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+renderContent();
+</script>
+</body>
+</html>
