@@ -286,6 +286,8 @@ const CASES = [
 ];
 
 let currentCase=0,completedCases=new Set(),_prompts={},_outputs={},_activeTab={};
+let _outputModel = {};
+let selectedModel = 'claude';
 
 function selectCase(idx){
   currentCase=idx;
@@ -336,7 +338,9 @@ function renderContent(){
         <span class="char-count" id="char-count">${savedPrompt.length} characters</span>
         <button class="btn-secondary" onclick="clearPrompt()">Clear</button>
         <button class="btn-secondary" onclick="loadExample()">Load Example</button>
-        <button class="btn-run" id="run-btn" onclick="runPrompt()">▶ &nbsp;Run with TATA-AI</button>
+        <button class="btn-run" id="run-btn-claude" onclick="runPrompt('claude')"style="background:#003B7A"> 🤖 &nbsp;Run with Claude </button>
+        <button class="btn-run" id="run-btn-gemini" onclick="runPrompt('gemini')" style="background:#1a73e8;margin-left:4px">✨ &nbsp;Run with Gemini </button>
+        
       </div>
     </div>
     <div class="panel" id="panel-tips" style="display:${activeTab==='tips'?'block':'none'}">
@@ -420,48 +424,72 @@ function applyTip(i){
   _prompts[currentCase]=ta.value;onPromptChange();ta.focus();
 }
 
-async function runPrompt(){
-  const prompt=(_prompts[currentCase]||'').trim();
-  if(!prompt){alert('Please write a prompt first, or click "Load Example" to try a sample.');return;}
-  const btn=document.getElementById('run-btn');
-  const display=document.getElementById('output-display');
-  const dot=document.getElementById('status-dot');
-  const statusText=document.getElementById('status-text');
-  btn.disabled=true;dot.className='status-dot loading';statusText.textContent='Generating...';
-  display.innerHTML=`<div style="padding:4px 0">${Array(7).fill('<div class="skeleton" style="width:'+(55+Math.random()*40|0)+'%"></div>').join('')}</div>`;
-  const systemPrompt=`You are TATA-AI, an enterprise AI assistant built exclusively for Tata Steel. You support HR, Procurement, IT, Learning & Development, and Operations teams across Tata Steel plants including Jamshedpur, Kalinganagar, and Odisha. Always provide structured, professional, and actionable responses. Use clear headings, numbered lists, and plain-text tables where appropriate. When asked for scores, use the format XX/100. Always end with a clear RECOMMENDATION section. Be specific and tailor responses to the steel manufacturing industry context.`;
-  try{
-    const res=await fetch('/api/chat',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-6',
-        max_tokens:1000,
-        system:systemPrompt,
-        messages:[{role:'user',content:prompt}]
+async function runPrompt(provider) {
+  provider = provider || selectedModel;
+  const prompt = (_prompts[currentCase] || '').trim();
+  if (!prompt) { alert('Please write a prompt first, or click "Load Example" to try a sample.'); return; }
+
+  const btn = document.getElementById('run-btn-claude');
+  const btn2 = document.getElementById('run-btn-gemini');
+  const display = document.getElementById('output-display');
+  const dot = document.getElementById('status-dot');
+  const statusText = document.getElementById('status-text');
+
+  if (btn) btn.disabled = true;
+  if (btn2) btn2.disabled = true;
+  dot.className = 'status-dot loading';
+  statusText.textContent = (provider === 'gemini' ? '✨ Gemini' : '🤖 Claude') + ' is generating...';
+
+  display.innerHTML = `<div style="padding:4px 0">${Array(7).fill(0).map(()=>`<div class="skeleton" style="width:${55+Math.floor(Math.random()*40)}%"></div>`).join('')}</div>`;
+
+  const systemPrompt = `You are TATA-AI, an enterprise AI assistant built exclusively for Tata Steel. You support HR, Procurement, IT, Learning & Development, and Operations teams across Tata Steel plants including Jamshedpur, Kalinganagar, and Odisha. Always provide structured, professional, and actionable responses. Use clear headings, numbered lists, and plain-text tables where appropriate. When asked for scores, use the format XX/100. Always end with a clear RECOMMENDATION section. Be specific and tailor responses to the steel manufacturing industry context.`;
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model_provider: provider,
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: prompt }]
       })
     });
-    const data=await res.json();
-    const text=(data.content&&data.content[0]&&data.content[0].text)
-      ?data.content[0].text
-      :(data.error?'Error: '+data.error.message:'No response received. Please try again.');
-    _outputs[currentCase]=text;
-    completedCases.add(currentCase);updateProgress();
-    display.innerHTML=`<div class="output-content">${escHtml(text)}</div>`;
-    dot.className='status-dot done';statusText.textContent='Complete';
-    const os=document.querySelector('.output-status');
-    if(os&&!os.querySelector('.dyn-copy')){
-      const cb=document.createElement('button');
-      cb.className='btn-secondary dyn-copy';cb.style.cssText='padding:4px 10px;font-size:11px';
-      cb.textContent='Copy Output';cb.onclick=copyOutput;os.appendChild(cb);
-    }
-  }catch(err){
-    display.innerHTML=`<div class="output-content" style="color:#C62828">⚠️ Error: ${escHtml(err.message)}\n\nPlease check your internet connection and try again.</div>`;
-    dot.className='status-dot idle';statusText.textContent='Error';
-  }
-  btn.disabled=false;
-}
 
+    const data = await res.json();
+    const text = (data.content && data.content[0] && data.content[0].text)
+      ? data.content[0].text
+      : (data.error ? 'Error: ' + data.error.message : 'No response received.');
+
+    _outputs[currentCase] = text;
+    _outputModel[currentCase] = provider;
+    completedCases.add(currentCase);
+    updateProgress();
+
+    display.innerHTML = `<div class="output-content">${escHtml(text)}</div>`;
+    dot.className = 'status-dot done';
+    statusText.textContent = 'Complete · ' + (provider === 'gemini' ? 'Gemini 1.5 Flash' : 'Claude Sonnet');
+
+    const os = document.querySelector('.output-status');
+    if (os && !os.querySelector('.dyn-copy')) {
+      const cb = document.createElement('button');
+      cb.className = 'btn-secondary dyn-copy';
+      cb.style.cssText = 'padding:4px 10px;font-size:11px';
+      cb.textContent = 'Copy Output';
+      cb.onclick = copyOutput;
+      os.appendChild(cb);
+    }
+  } catch (err) {
+    display.innerHTML = `<div class="output-content" style="color:#C62828">⚠️ Error: ${escHtml(err.message)}</div>`;
+    dot.className = 'status-dot idle';
+    statusText.textContent = 'Error';
+  }
+
+  if (btn) btn.disabled = false;
+  if (btn2) btn2.disabled = false;
+}
+ 
 function copyOutput(){
   const text=_outputs[currentCase];if(!text)return;
   if(navigator.clipboard)navigator.clipboard.writeText(text).then(()=>{
